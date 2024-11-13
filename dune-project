@@ -15,4 +15,7 @@
  (license "MIT")
  (allow_empty true)
  (version 0.1)
- (depends lwt))
+ (depends
+  (ocaml
+   (>= 5.2.0))
+  core))
