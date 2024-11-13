@@ -19,8 +19,8 @@ let () =
   Printf.eprintf "Logs from your program will appear here!\n";
 
   if String.length file_contents > 0 then
-    (* Implement & use your scanner here *)
-    failwith "Scanner not implemented"
+    let tokens = Scanner.tokenize file_contents in
+    List.sexp_of_t Token.sexp_of_t tokens |> Sexp.to_string_hum |> print_endline
   else
     (* Uncomment this block to pass the first stage *)
     print_endline "EOF  null"; (* Placeholder, remove this line when implementing the scanner *)
