@@ -1,10 +1,10 @@
 open Core
 
 type t =
-  | LeftParen
-  | RightParen
-  | LeftBrace
-  | RightBrace
+  | Left_Paren
+  | Right_Paren
+  | Left_Brace
+  | Right_Brace
   | Comma
   | Dot
   | Minus
@@ -13,16 +13,16 @@ type t =
   | Slash
   | Star
   | Bang
-  | BangEqual
+  | Bang_Equal
   | Equal
-  | EqualEqual
+  | Equal_Equal
   | Greater
-  | GreaterEqual
+  | Greater_Equal
   | Less
-  | LessEqual
-  | Identifier of String.t
-  | String of String.t
-  | Number of Float.t
+  | Less_Equal
+  | Identifier of String.t [@nested "IDENTIFIER."]
+  | String of String.t [@nested "STRING."]
+  | Number of Float.t [@nested "NUMBER."]
   | And
   | Class
   | Else
@@ -40,4 +40,4 @@ type t =
   | Var
   | While
   | Eof
-  [@@deriving sexp]
+  [@@deriving to_string ~capitalize:"SCREAMING_SNAKE_CASE", sexp]

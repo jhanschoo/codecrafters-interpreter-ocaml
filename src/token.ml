@@ -8,3 +8,10 @@ type t =
     pos : int
   }
 [@@deriving fields, sexp]
+
+let to_string_expected (token : t) : string =
+  let tts = Token_type.to_string token.tt in
+  match String.split ~on:'.' tts with
+  | [ tc ; s ] -> [%string "%{tc} %{token.lexeme} %{s}"]
+  | [ tc ] -> [%string "%{tc} %{token.lexeme} null"]
+  | _ -> failwith "Invalid token type"
