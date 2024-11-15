@@ -1,14 +1,17 @@
 open Core
 
-let tokenize (file_contents : string) : Token.t list =
-  let lineref = ref 0
+type error = string
+type result = Token.t list * error list
+
+let tokenize (file_contents : string) : result =
+  let lineref = ref 1
   and posref = ref 0 in
-  let f (acc : Token.t list) (c : char) : Token.t list =
+  let f ((acc, errs) : result) (c : char) : result =
     posref := !posref + 1;
     let line = !lineref
     and pos = !posref in
-    let single_char_tmpl (tt : Token_type.t) : Token.t list =
-      { tt; lexeme = String.of_char c; line; pos } :: acc
+    let single_char_tmpl (tt : Token_type.t) : result =
+      { tt; lexeme = String.of_char c; line; pos } :: acc, errs
     in
     match c with
     | '(' -> single_char_tmpl Left_Paren
@@ -22,11 +25,12 @@ let tokenize (file_contents : string) : Token.t list =
     | ';' -> single_char_tmpl Semicolon
     | '*' -> single_char_tmpl Star
     | '/' -> single_char_tmpl Slash
-    | _ -> acc
+    | _ ->
+      let e = Printf.sprintf "[line %i] Error: Unexpected character: %c" line c in
+      Printf.eprintf "%s\n" e;
+      acc, e :: errs
   in
-  let rev_res =
-    Token.{ tt = Eof; lexeme = ""; line = !lineref; pos = !posref + 1 }
-    :: String.fold file_contents ~init:[] ~f
-  in
-  List.rev rev_res
+  let acc, errs = String.fold file_contents ~init:([], []) ~f in
+  ( Token.{ tt = Eof; lexeme = ""; line = !lineref; pos = !posref + 1 } :: acc |> List.rev
+  , errs )
 ;;
