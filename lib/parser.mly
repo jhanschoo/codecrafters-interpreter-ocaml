@@ -71,7 +71,7 @@ let gobble_not_eof :=
 let expression := terminated(term, EOF)
 
 let term :=
-    | ~ = triple(factor, term_binop, factor); < Ast.Binary >
+    | ~ = triple(term, term_binop, factor); < Ast.Binary >
     | factor
 
 let term_binop :=
@@ -79,7 +79,7 @@ let term_binop :=
     | PLUS; { Ast.Plus }
 
 let factor :=
-    | ~ = triple(unary, factor_binop, unary); < Ast.Binary >
+    | ~ = triple(factor, factor_binop, unary); < Ast.Binary >
     | unary
 
 let factor_binop :=
