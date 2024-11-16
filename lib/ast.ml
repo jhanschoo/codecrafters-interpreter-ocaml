@@ -57,7 +57,7 @@ let to_string_lit (l : lit) : String.t =
 
 let rec to_string (e : expr) : String.t =
   match e with
-  | Binary (l, op, r) -> [%string "(%{to_string l} %{to_string_binop op} %{to_string r})"]
+  | Binary (l, op, r) -> [%string "(%{to_string_binop op} %{to_string l} %{to_string r})"]
   | Grouping e -> [%string "(group %{to_string e})"]
   | Literal l -> to_string_lit l
   | Unary (op, e) -> [%string "(%{to_string_unop op} %{to_string e})"]
