@@ -6,6 +6,8 @@ let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
   (* let lexbuf = Sedlexing.Latin1.from_channel chan in *)
   let gen lbuf =
     match%sedlex lbuf with
+    | "!=" -> Parser.BANG_EQUAL
+    | '!' -> Parser.BANG
     | "==" -> Parser.EQUAL_EQUAL
     | '=' -> Parser.EQUAL
     | '(' -> Parser.LEFT_PAREN
@@ -28,6 +30,8 @@ let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
 
 let token_constructor_value_strings (t : Parser.token) =
   match t with
+  | BANG_EQUAL -> "BANG_EQUAL", "null"
+  | BANG -> "BANG", "null"
   | RIGHT_PAREN -> "RIGHT_PAREN", "null"
   | LEFT_PAREN -> "LEFT_PAREN", "null"
   | RIGHT_BRACE -> "RIGHT_BRACE", "null"
