@@ -159,5 +159,5 @@ let declaration :=
 let vardecl := ~ = delimited(VAR, pair(IDENTIFIER, option(preceded(EQUAL, expr))), SEMICOLON); < Ast.Var >
 
 let statement :=
-    | ~ = terminated(expr, SEMICOLON); < Ast.Expression >
     | ~ = delimited(PRINT, expr, SEMICOLON); < Ast.Print >
+    | ~ = terminated(expr, SEMICOLON); < Ast.Expression >

@@ -23,11 +23,19 @@ let rec evaluate_expr (env : Environment.t) (expr : Ast.expr) : Value.t =
           Value.Boolean Float.(n1 <> n2)
         | Ast.Bang_equal, Value.String s1, Value.String s2 ->
           Value.Boolean String.(s1 <> s2)
+        | Ast.Bang_equal, Value.Boolean b1, Value.Boolean b2 ->
+          Value.Boolean Bool.(b1 <> b2)
+        | Ast.Bang_equal, Value.Nil, Value.Nil ->
+          Value.Boolean false
         | Ast.Bang_equal, _, _ -> Value.Boolean true
         | Ast.Equal_equal, Value.Number n1, Value.Number n2 ->
           Value.Boolean Float.(n1 = n2)
         | Ast.Equal_equal, Value.String s1, Value.String s2 ->
           Value.Boolean String.(s1 = s2)
+        | Ast.Equal_equal, Value.Boolean b1, Value.Boolean b2 ->
+          Value.Boolean Bool.(b1 = b2)
+        | Ast.Equal_equal, Value.Nil, Value.Nil ->
+          Value.Boolean true
         | Ast.Equal_equal, _, _ -> Value.Boolean false
         | Ast.Greater, Value.Number n1, Value.Number n2 -> Value.Boolean Float.(n1 > n2)
         | Ast.Greater_equal, Value.Number n1, Value.Number n2 ->
