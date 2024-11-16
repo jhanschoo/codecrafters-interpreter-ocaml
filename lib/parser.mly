@@ -161,3 +161,4 @@ let vardecl := ~ = delimited(VAR, pair(IDENTIFIER, option(preceded(EQUAL, expr))
 let statement :=
     | ~ = delimited(PRINT, expr, SEMICOLON); < Ast.Print >
     | ~ = terminated(expr, SEMICOLON); < Ast.Expression >
+    | ~ = delimited(LEFT_BRACE, declaration*, RIGHT_BRACE); < Ast.Block >
