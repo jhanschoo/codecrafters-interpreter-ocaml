@@ -1,0 +1,8 @@
+(menhir
+ (modules parser))
+
+(library
+ (name lib)
+ (libraries core sedlex menhirLib)
+ (modules run scanner parser)
+ (preprocess (pps ppx_jane sedlex.ppx)))

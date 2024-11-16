@@ -12,6 +12,8 @@ depends: [
   "dune" {>= "3.16"}
   "ocaml" {>= "5.2.0"}
   "core"
+  "menhir"
+  "sedlex"
   "odoc" {with-doc}
 ]
 build: [

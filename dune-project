@@ -4,6 +4,8 @@
 
 (generate_opam_files true)
 
+(using menhir 3.0)
+
 (package
  (name codecrafters_interpreter)
  (maintainers "CodeCrafters <hello@codecrafters.io>")
@@ -18,4 +20,6 @@
  (depends
   (ocaml
    (>= 5.2.0))
-  core))
+  core
+  menhir
+  sedlex))
