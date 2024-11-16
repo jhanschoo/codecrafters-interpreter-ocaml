@@ -11,6 +11,7 @@ let () =
   match command with
   | "tokenize" -> Lib.Run.tokenize filename
   | "parse" -> Lib.Run.parse filename
+  | "evaluate" -> Lib.Run.evaluate filename
   | _ ->
     eprintf "Unknown command: %s\n" command;
     exit 1

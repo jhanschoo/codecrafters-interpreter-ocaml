@@ -17,14 +17,26 @@ let parse filename =
   let f (chan : In_channel.t) =
     let lexbuf = Sedlexing.Utf8.from_channel chan in
     let has_error, stream = Scanner.filter_unknown ~print:false Scanner.tokenize lexbuf in
-    if !has_error
-    then exit 65
-    else (
-      try
-        let ast = expression stream in
-        print_endline (Ast.to_string ast)
-      with
-      | Parser.Error -> exit 65)
+    if !has_error then exit 65;
+    let ast =
+      try expression stream with
+      | Parser.Error -> exit 65
+    in
+    print_endline (Ast.to_string ast)
   in
   In_channel.with_file filename ~f
 ;;
+
+let evaluate filename =
+  let f (chan : In_channel.t) =
+    let lexbuf = Sedlexing.Utf8.from_channel chan in
+    let has_error, stream = Scanner.filter_unknown ~print:false Scanner.tokenize lexbuf in
+    if !has_error then exit 65;
+    let ast =
+      try expression stream with
+      | Parser.Error -> exit 65
+    in
+    let result = Interpreter.evaluate_expr (Environment.create None) ast in
+    Value.to_string result |> print_endline
+  in
+  In_channel.with_file filename ~f

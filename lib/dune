@@ -4,5 +4,6 @@
 (library
  (name lib)
  (libraries core sedlex menhirLib)
- (modules run scanner parser util ast)
- (preprocess (pps ppx_jane sedlex.ppx)))
+ (modules run scanner parser util ast value environment interpreter)
+ (preprocess
+  (pps ppx_jane sedlex.ppx)))

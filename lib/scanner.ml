@@ -36,10 +36,10 @@ let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
       Parser.STRING (String.slice lexeme 1 (-1))
     | '"', Star (Compl '"') -> Parser.UNKNOWN "Unterminated string."
     (* number *)
-    | Plus ('0' .. '9'), '.', Plus ('0' .. '9') ->
+    | Plus '0' .. '9', '.', Plus '0' .. '9' ->
       let lexeme = Sedlexing.Utf8.lexeme lbuf in
       Parser.NUMBER (Float.of_string lexeme)
-    | Plus ('0' .. '9') -> Parser.NUMBER (Float.of_string (Sedlexing.Utf8.lexeme lbuf))
+    | Plus '0' .. '9' -> Parser.NUMBER (Float.of_string (Sedlexing.Utf8.lexeme lbuf))
     (* keywords *)
     | "and" -> Parser.AND
     | "class" -> Parser.CLASS
@@ -58,8 +58,8 @@ let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
     | "var" -> Parser.VAR
     | "while" -> Parser.WHILE
     (* identifier *)
-    | ('a' .. 'z' | 'A' .. 'Z' | '_'), Star ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_') ->
-      Parser.IDENTIFIER (Sedlexing.Utf8.lexeme lbuf)
+    | ('a' .. 'z' | 'A' .. 'Z' | '_'), Star ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_')
+      -> Parser.IDENTIFIER (Sedlexing.Utf8.lexeme lbuf)
     (* unknown *)
     | any -> Parser.UNKNOWN ("Unexpected character: " ^ Sedlexing.Utf8.lexeme lbuf)
     | eof -> Parser.EOF
