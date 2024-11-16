@@ -8,9 +8,10 @@ let () =
     exit 1);
   let command = argv.(1) in
   let filename = argv.(2) in
-  if String.(command <> "tokenize")
-  then (
-    Printf.eprintf "Unknown command: %s\n" command;
-    exit 1);
-  Lib.Run.tokenize filename
+  match command with
+  | "tokenize" -> Lib.Run.tokenize filename
+  | "parse" -> Lib.Run.parse filename
+  | _ ->
+    eprintf "Unknown command: %s\n" command;
+    exit 1
 ;;
