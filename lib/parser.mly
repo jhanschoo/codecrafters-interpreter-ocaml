@@ -68,7 +68,17 @@ let gobble_not_eof :=
     | AND | CLASS | ELSE | FALSE | FUN | FOR | IF | NIL | OR
     | PRINT | RETURN | SUPER | THIS | TRUE | VAR | WHILE
 
-let expression := terminated(comparison, EOF)
+let expression := terminated(expr, EOF)
+
+let expr := equality
+
+let equality :=
+    | ~ = triple(equality, eqop, comparison); < Ast.Binary >
+    | comparison
+
+let eqop :=
+    | BANG_EQUAL; { Ast.Bang_equal }
+    | EQUAL_EQUAL; { Ast.Equal_equal }
 
 let comparison :=
     | ~ = triple(comparison, compop, term); < Ast.Binary >
@@ -115,4 +125,4 @@ let literal :=
     | FALSE; { Ast.Boolean false }
     | NIL; { Ast.Nil }
 
-let grouping := ~ = comparison; < Ast.Grouping >
+let grouping := ~ = expr; < Ast.Grouping >
