@@ -73,7 +73,7 @@ let token_constructor_value_strings (t : Parser.token) =
   | GREATER_EQUAL -> "GREATER_EQUAL", "null"
   | LESS -> "LESS", "null"
   | LESS_EQUAL -> "LESS_EQUAL", "null"
-  | IDENTIFIER s -> "IDENTIFIER", "null"
+  | IDENTIFIER _ -> "IDENTIFIER", "null"
   | STRING s -> "STRING", s
   | NUMBER f -> "NUMBER", Util.number_to_string f
   | AND -> "AND", "null"
