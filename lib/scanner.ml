@@ -4,23 +4,38 @@ type t = Parser.token * Lexing.position * Lexing.position
 
 let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
   (* let lexbuf = Sedlexing.Latin1.from_channel chan in *)
-  let gen lbuf =
+  let rec gen lbuf =
     match%sedlex lbuf with
+    (* one-or-two char tokens *)
     | "!=" -> Parser.BANG_EQUAL
     | '!' -> Parser.BANG
     | "==" -> Parser.EQUAL_EQUAL
     | '=' -> Parser.EQUAL
+    | ">=" -> Parser.GREATER_EQUAL
+    | '>' -> Parser.GREATER
+    | "<=" -> Parser.LESS_EQUAL
+    | '<' -> Parser.LESS
+    (* comment *)
+    | "//" ->
+      (match%sedlex lbuf with
+      | Star (Compl '\n') -> gen lbuf
+      | _ -> failwith "Impossible"
+      )
+    (* one-char tokens *)
     | '(' -> Parser.LEFT_PAREN
     | ')' -> Parser.RIGHT_PAREN
     | '{' -> Parser.LEFT_BRACE
     | '}' -> Parser.RIGHT_BRACE
     | ',' -> Parser.COMMA
-    | ';' -> Parser.SEMICOLON
     | '.' -> Parser.DOT
-    | '+' -> Parser.PLUS
     | '-' -> Parser.MINUS
+    | '+' -> Parser.PLUS
+    | ';' -> Parser.SEMICOLON
     | '*' -> Parser.STAR
     | '/' -> Parser.SLASH
+    (* whitespace *)
+    | Plus (' ' | '\t' | '\n' | '\r') -> gen lbuf
+    (* string *)
     | any -> Parser.UNKNOWN (Char.of_string (Sedlexing.Latin1.lexeme lbuf))
     | eof -> Parser.EOF
     | _ -> failwith ("Invalid token" ^ Sedlexing.Latin1.lexeme lbuf)
@@ -30,23 +45,45 @@ let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
 
 let token_constructor_value_strings (t : Parser.token) =
   match t with
-  | BANG_EQUAL -> "BANG_EQUAL", "null"
-  | BANG -> "BANG", "null"
-  | RIGHT_PAREN -> "RIGHT_PAREN", "null"
   | LEFT_PAREN -> "LEFT_PAREN", "null"
-  | RIGHT_BRACE -> "RIGHT_BRACE", "null"
+  | RIGHT_PAREN -> "RIGHT_PAREN", "null"
   | LEFT_BRACE -> "LEFT_BRACE", "null"
+  | RIGHT_BRACE -> "RIGHT_BRACE", "null"
   | COMMA -> "COMMA", "null"
-  | SEMICOLON -> "SEMICOLON", "null"
   | DOT -> "DOT", "null"
-  | PLUS -> "PLUS", "null"
   | MINUS -> "MINUS", "null"
-  | STAR -> "STAR", "null"
+  | PLUS -> "PLUS", "null"
+  | SEMICOLON -> "SEMICOLON", "null"
   | SLASH -> "SLASH", "null"
-  | IDENTIFIER s -> "IDENTIFIER", s
-  | EOF -> "EOF", "null"
-  | EQUAL_EQUAL -> "EQUAL_EQUAL", "null"
+  | STAR -> "STAR", "null"
+  | BANG -> "BANG", "null"
+  | BANG_EQUAL -> "BANG_EQUAL", "null"
   | EQUAL -> "EQUAL", "null"
+  | EQUAL_EQUAL -> "EQUAL_EQUAL", "null"
+  | GREATER -> "GREATER", "null"
+  | GREATER_EQUAL -> "GREATER_EQUAL", "null"
+  | LESS -> "LESS", "null"
+  | LESS_EQUAL -> "LESS_EQUAL", "null"
+  | IDENTIFIER s -> "IDENTIFIER", s
+  | STRING s -> "STRING", s
+  | NUMBER f -> "NUMBER", Float.to_string f
+  | AND -> "AND", "null"
+  | CLASS -> "CLASS", "null"
+  | ELSE -> "ELSE", "null"
+  | FALSE -> "FALSE", "null"
+  | FUN -> "FUN", "null"
+  | FOR -> "FOR", "null"
+  | IF -> "IF", "null"
+  | NIL -> "NIL", "null"
+  | OR -> "OR", "null"
+  | PRINT -> "PRINT", "null"
+  | RETURN -> "RETURN", "null"
+  | SUPER -> "SUPER", "null"
+  | THIS -> "THIS", "null"
+  | TRUE -> "TRUE", "null"
+  | VAR -> "VAR", "null"
+  | WHILE -> "WHILE", "null"
+  | EOF -> "EOF", "null"
   | UNKNOWN c -> "UNKNOWN", String.of_char c
 ;;
 
