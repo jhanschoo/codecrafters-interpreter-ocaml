@@ -12,6 +12,7 @@ let () =
   | "tokenize" -> Lib.Run.tokenize filename
   | "parse" -> Lib.Run.parse filename
   | "evaluate" -> Lib.Run.evaluate filename
+  | "run" -> Lib.Run.run filename
   | _ ->
     eprintf "Unknown command: %s\n" command;
     exit 1

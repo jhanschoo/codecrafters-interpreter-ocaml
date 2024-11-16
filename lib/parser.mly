@@ -45,6 +45,7 @@
 
 %start <Unit.t> gobble
 %start <Ast.expr> expression
+%start <Ast.program> prog
 
 %%
 
@@ -70,7 +71,25 @@ let gobble_not_eof :=
 
 let expression := terminated(expr, EOF)
 
-let expr := equality
+let expr := assignment
+
+let assignment :=
+    | ~ = separated_pair(IDENTIFIER, EQUAL, expr); < Ast.Assign >
+    | logic_or
+
+let logic_or :=
+    | ~ = triple(logic_and, orop, logic_or); SEMICOLON; < Ast.Logical >
+    | logic_and
+
+let orop :=
+    | OR; { Ast.Or }
+
+let logic_and :=
+    | ~ = triple(equality, andop, logic_and); SEMICOLON; < Ast.Logical >
+    | equality
+
+let andop :=
+    | AND; { Ast.And }
 
 let equality :=
     | ~ = triple(equality, eqop, comparison); < Ast.Binary >
@@ -116,6 +135,8 @@ let unop :=
 
 let primary :=
     | ~ = literal; < Ast.Literal >
+    // | THIS; { Ast.This "this" }
+    | identifier
     | delimited(LEFT_PAREN, grouping, RIGHT_PAREN)
 
 let literal :=
@@ -125,4 +146,18 @@ let literal :=
     | FALSE; { Ast.Boolean false }
     | NIL; { Ast.Nil }
 
+let identifier := ~ = IDENTIFIER; < Ast.Variable >
+
 let grouping := ~ = expr; < Ast.Grouping >
+
+let prog := ~ = declaration*; EOF; <>
+
+let declaration :=
+    | vardecl
+    | statement
+
+let vardecl := ~ = delimited(VAR, pair(IDENTIFIER, option(preceded(EQUAL, expr))), SEMICOLON); < Ast.Var >
+
+let statement :=
+    | ~ = terminated(expr, SEMICOLON); < Ast.Expression >
+    | ~ = delimited(PRINT, expr, SEMICOLON); < Ast.Print >

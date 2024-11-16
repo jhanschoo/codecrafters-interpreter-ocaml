@@ -2,6 +2,7 @@ open Core
 
 let gobble = MenhirLib.Convert.Simplified.traditional2revised Parser.gobble
 let expression = MenhirLib.Convert.Simplified.traditional2revised Parser.expression
+let prog = MenhirLib.Convert.Simplified.traditional2revised Parser.prog
 
 let tokenize filename =
   let f (chan : In_channel.t) =
@@ -36,7 +37,22 @@ let evaluate filename =
       try expression stream with
       | Parser.Error -> exit 65
     in
-    let result = Interpreter.evaluate_expr (Environment.create None) ast in
+    let result = Interpreter.evaluate ast in
     Value.to_string result |> print_endline
   in
   In_channel.with_file filename ~f
+;;
+
+let run filename =
+  let f (chan : In_channel.t) =
+    let lexbuf = Sedlexing.Utf8.from_channel chan in
+    let has_error, stream = Scanner.filter_unknown ~print:false Scanner.tokenize lexbuf in
+    if !has_error then exit 65;
+    let program =
+      try prog stream with
+      | Parser.Error -> exit 65
+    in
+    Interpreter.execute program
+  in
+  In_channel.with_file filename ~f
+;;
