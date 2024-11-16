@@ -5,17 +5,6 @@ type t = Parser.token * Lexing.position * Lexing.position
 let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
   let rec gen lbuf =
     match%sedlex lbuf with
-    (* one-or-two char tokens *)
-    | "!=" -> Parser.BANG_EQUAL
-    | '!' -> Parser.BANG
-    | "==" -> Parser.EQUAL_EQUAL
-    | '=' -> Parser.EQUAL
-    | ">=" -> Parser.GREATER_EQUAL
-    | '>' -> Parser.GREATER
-    | "<=" -> Parser.LESS_EQUAL
-    | '<' -> Parser.LESS
-    (* comment *)
-    | "//", Star (Compl '\n'), Opt '\n' -> gen lbuf
     (* one-char tokens *)
     | '(' -> Parser.LEFT_PAREN
     | ')' -> Parser.RIGHT_PAREN
@@ -27,6 +16,17 @@ let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
     | '+' -> Parser.PLUS
     | ';' -> Parser.SEMICOLON
     | '*' -> Parser.STAR
+    (* one-or-two char tokens *)
+    | "!=" -> Parser.BANG_EQUAL
+    | '!' -> Parser.BANG
+    | "==" -> Parser.EQUAL_EQUAL
+    | '=' -> Parser.EQUAL
+    | ">=" -> Parser.GREATER_EQUAL
+    | '>' -> Parser.GREATER
+    | "<=" -> Parser.LESS_EQUAL
+    | '<' -> Parser.LESS
+    (* comment *)
+    | "//", Star (Compl '\n'), Opt '\n' -> gen lbuf
     | '/' -> Parser.SLASH
     (* whitespace *)
     | Plus (' ' | '\t' | '\n' | '\r') -> gen lbuf
@@ -40,7 +40,10 @@ let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
       let lexeme = Sedlexing.Utf8.lexeme lbuf in
       Parser.NUMBER (Float.of_string lexeme)
     | Plus ('0' .. '9') -> Parser.NUMBER (Float.of_string (Sedlexing.Utf8.lexeme lbuf))
+    (* keywords *)
     (* identifier *)
+    | ('a' .. 'z' | 'A' .. 'Z' | '_'), Star ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_') ->
+      Parser.IDENTIFIER (Sedlexing.Utf8.lexeme lbuf)
     (* unknown *)
     | any -> Parser.UNKNOWN ("Unexpected character: " ^ Sedlexing.Utf8.lexeme lbuf)
     | eof -> Parser.EOF
@@ -70,7 +73,7 @@ let token_constructor_value_strings (t : Parser.token) =
   | GREATER_EQUAL -> "GREATER_EQUAL", "null"
   | LESS -> "LESS", "null"
   | LESS_EQUAL -> "LESS_EQUAL", "null"
-  | IDENTIFIER s -> "IDENTIFIER", s
+  | IDENTIFIER s -> "IDENTIFIER", "null"
   | STRING s -> "STRING", s
   | NUMBER f -> "NUMBER", Util.number_to_string f
   | AND -> "AND", "null"
