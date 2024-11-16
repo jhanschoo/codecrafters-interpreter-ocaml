@@ -41,7 +41,7 @@
 %token WHILE
 
 %token EOF
-%token <Char.t> UNKNOWN
+%token <String.t> UNKNOWN
 
 %start <Unit.t> gobble
 

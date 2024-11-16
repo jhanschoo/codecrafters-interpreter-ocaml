@@ -3,7 +3,6 @@ open Core
 type t = Parser.token * Lexing.position * Lexing.position
 
 let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
-  (* let lexbuf = Sedlexing.Latin1.from_channel chan in *)
   let rec gen lbuf =
     match%sedlex lbuf with
     (* one-or-two char tokens *)
@@ -16,11 +15,7 @@ let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
     | "<=" -> Parser.LESS_EQUAL
     | '<' -> Parser.LESS
     (* comment *)
-    | "//" ->
-      (match%sedlex lbuf with
-      | Star (Compl '\n') -> gen lbuf
-      | _ -> failwith "Impossible"
-      )
+    | "//", Star (Compl '\n'), Opt '\n' -> gen lbuf
     (* one-char tokens *)
     | '(' -> Parser.LEFT_PAREN
     | ')' -> Parser.RIGHT_PAREN
@@ -36,9 +31,16 @@ let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
     (* whitespace *)
     | Plus (' ' | '\t' | '\n' | '\r') -> gen lbuf
     (* string *)
-    | any -> Parser.UNKNOWN (Char.of_string (Sedlexing.Latin1.lexeme lbuf))
+    | '"', Star (Compl '"'), '"' ->
+      let lexeme = Sedlexing.Utf8.lexeme lbuf in
+      Parser.STRING (String.slice lexeme 1 (-1))
+    | '"', Star (Compl '"') -> Parser.UNKNOWN "Unterminated string."
+    (* identifier *)
+    (* number *)
+    (* unknown *)
+    | any -> Parser.UNKNOWN ("Unexpected character: " ^ Sedlexing.Utf8.lexeme lbuf)
     | eof -> Parser.EOF
-    | _ -> failwith ("Invalid token" ^ Sedlexing.Latin1.lexeme lbuf)
+    | _ -> failwith ("Invalid tokenization" ^ Sedlexing.Utf8.lexeme lbuf)
   in
   Sedlexing.with_tokenizer gen lexbuf
 ;;
@@ -84,7 +86,7 @@ let token_constructor_value_strings (t : Parser.token) =
   | VAR -> "VAR", "null"
   | WHILE -> "WHILE", "null"
   | EOF -> "EOF", "null"
-  | UNKNOWN c -> "UNKNOWN", String.of_char c
+  | UNKNOWN s -> "UNKNOWN", s
 ;;
 
 let filter_unknown
@@ -99,59 +101,16 @@ let filter_unknown
     let token = stream () in
     let raw_token, _, cpos = token in
     match raw_token with
-    | Parser.UNKNOWN c ->
-      Printf.eprintf "[line %i] Error: Unexpected character: %c\n" cpos.pos_lnum c;
+    | Parser.UNKNOWN e ->
+      Printf.eprintf "[line %i] Error: %s\n" cpos.pos_lnum e;
       hasUnknown := true;
       aux ()
     | _ ->
       if print
       then (
         let constructor, value = token_constructor_value_strings raw_token in
-        Printf.printf "%s %s %s\n" constructor (Sedlexing.Latin1.lexeme lexbuf) value);
+        Printf.printf "%s %s %s\n" constructor (Sedlexing.Utf8.lexeme lexbuf) value);
       token
   in
   hasUnknown, aux
 ;;
-
-(* let to_string ((token, start_p, curr_p) : t) : string =
-   let tts = Token_type.to_string token.tt in
-   let token = match String.split ~on:'.' tts with
-   | [ tc ; s ] -> Printf.sprintf "%s %s %s" tc token.lexeme s
-   | [ tc ] -> Printf.sprintf "%s %s null" tc token.lexeme
-   | _ -> failwith "Invalid token type"
-   in
-   Printf.sprintf "%s [%i:%i-%i:%i]" token
-   start_p.pos_lnum start_p.pos_cnum
-   curr_p.pos_lnum curr_p.pos_cnum *)
-
-(* let tokenize (file_contents : string) : result =
-  let lineref = ref 1
-  and posref = ref 0 in
-  let f ((acc, errs) : result) (c : char) : result =
-    posref := !posref + 1;
-    let line = !lineref
-    and pos = !posref in
-    let single_char_tmpl (tt : Token_type.t) : result =
-      { tt; lexeme = String.of_char c; line; pos } :: acc, errs
-    in
-    match c with
-    | '(' -> single_char_tmpl Left_Paren
-    | ')' -> single_char_tmpl Right_Paren
-    | '{' -> single_char_tmpl Left_Brace
-    | '}' -> single_char_tmpl Right_Brace
-    | ',' -> single_char_tmpl Comma
-    | '.' -> single_char_tmpl Dot
-    | '-' -> single_char_tmpl Minus
-    | '+' -> single_char_tmpl Plus
-    | ';' -> single_char_tmpl Semicolon
-    | '*' -> single_char_tmpl Star
-    | '/' -> single_char_tmpl Slash
-    | _ ->
-      let e = Printf.sprintf "[line %i] Error: Unexpected character: %c" line c in
-      Printf.eprintf "%s\n" e;
-      acc, e :: errs
-  in
-  let acc, errs = String.fold file_contents ~init:([], []) ~f in
-  ( Token.{ tt = Eof; lexeme = ""; line = !lineref; pos = !posref + 1 } :: acc |> List.rev
-  , errs )
-;; *)
