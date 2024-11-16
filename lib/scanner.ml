@@ -35,8 +35,12 @@ let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
       let lexeme = Sedlexing.Utf8.lexeme lbuf in
       Parser.STRING (String.slice lexeme 1 (-1))
     | '"', Star (Compl '"') -> Parser.UNKNOWN "Unterminated string."
-    (* identifier *)
     (* number *)
+    | Plus ('0' .. '9'), '.', Plus ('0' .. '9') ->
+      let lexeme = Sedlexing.Utf8.lexeme lbuf in
+      Parser.NUMBER (Float.of_string lexeme)
+    | Plus ('0' .. '9') -> Parser.NUMBER (Float.of_string (Sedlexing.Utf8.lexeme lbuf))
+    (* identifier *)
     (* unknown *)
     | any -> Parser.UNKNOWN ("Unexpected character: " ^ Sedlexing.Utf8.lexeme lbuf)
     | eof -> Parser.EOF
@@ -68,7 +72,7 @@ let token_constructor_value_strings (t : Parser.token) =
   | LESS_EQUAL -> "LESS_EQUAL", "null"
   | IDENTIFIER s -> "IDENTIFIER", s
   | STRING s -> "STRING", s
-  | NUMBER f -> "NUMBER", Float.to_string f
+  | NUMBER f -> "NUMBER", Util.number_to_string f
   | AND -> "AND", "null"
   | CLASS -> "CLASS", "null"
   | ELSE -> "ELSE", "null"
