@@ -48,6 +48,9 @@
 
 %%
 
+let triple(a, b, c) ==
+    ~ = a; ~ = b; ~ = c; { (a, b, c) }
+
 let gobble :=
     | gobble_not_eof* ; EOF ; { () }
 
@@ -65,25 +68,41 @@ let gobble_not_eof :=
     | AND | CLASS | ELSE | FALSE | FUN | FOR | IF | NIL | OR
     | PRINT | RETURN | SUPER | THIS | TRUE | VAR | WHILE
 
-let expression := terminated(unary, EOF)
+let expression := terminated(term, EOF)
+
+let term :=
+    | ~ = triple(factor, term_binop, factor); < Ast.Binary >
+    | factor
+
+let term_binop :=
+    | MINUS; { Ast.Minus }
+    | PLUS; { Ast.Plus }
+
+let factor :=
+    | ~ = triple(unary, factor_binop, unary); < Ast.Binary >
+    | unary
+
+let factor_binop :=
+    | SLASH; { Ast.Slash }
+    | STAR; { Ast.Star }
 
 let unary :=
-    | ~ = pair(unop, unary) ; < Ast.Unary >
+    | ~ = pair(unop, unary); < Ast.Unary >
     | primary
 
 let unop :=
-    | MINUS ; { Ast.Minus }
-    | BANG ; { Ast.Bang }
+    | MINUS; { Ast.Minus }
+    | BANG; { Ast.Bang }
 
 let primary :=
-    | ~ = literal ; < Ast.Literal >
+    | ~ = literal; < Ast.Literal >
     | delimited(LEFT_PAREN, grouping, RIGHT_PAREN)
 
 let literal :=
-    | ~ = NUMBER ; < Ast.Number >
-    | ~ = STRING ; < Ast.String >
-    | TRUE ; { Ast.Boolean true }
-    | FALSE ; { Ast.Boolean false }
-    | NIL ; { Ast.Nil }
+    | ~ = NUMBER; < Ast.Number >
+    | ~ = STRING; < Ast.String >
+    | TRUE; { Ast.Boolean true }
+    | FALSE; { Ast.Boolean false }
+    | NIL; { Ast.Nil }
 
-let grouping := ~ = unary ; < Ast.Grouping >
+let grouping := ~ = term; < Ast.Grouping >
