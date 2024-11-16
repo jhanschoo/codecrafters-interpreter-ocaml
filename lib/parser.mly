@@ -48,9 +48,10 @@
 
 %%
 
-gobble:
-    | gobble_not_eof* EOF { () }
-gobble_not_eof:
+let gobble :=
+    | gobble_not_eof* ; EOF ; { () }
+
+let gobble_not_eof :=
     | LEFT_PAREN | RIGHT_PAREN | LEFT_BRACE | RIGHT_BRACE
     | COMMA | DOT | MINUS | PLUS | SEMICOLON | SLASH | STAR
     
@@ -59,18 +60,30 @@ gobble_not_eof:
     | GREATER | GREATER_EQUAL
     | LESS | LESS_EQUAL
 
-    | IDENTIFIER | STRING | NUMBER
+    | IDENTIFIER; { () } | STRING; { () } | NUMBER; { () }
 
     | AND | CLASS | ELSE | FALSE | FUN | FOR | IF | NIL | OR
     | PRINT | RETURN | SUPER | THIS | TRUE | VAR | WHILE
-    { () }
 
-expression: primary { $1 }
+let expression := terminated(unary, EOF)
 
-primary:
-    | NUMBER { Ast.Literal (Ast.Number $1) }
-    | STRING { Ast.Literal (Ast.String $1) }
-    | TRUE { Ast.Literal (Ast.Boolean true) }
-    | FALSE { Ast.Literal (Ast.Boolean false) }
-    | NIL { Ast.Literal Ast.Nil }
-    | LEFT_PAREN expression RIGHT_PAREN { Ast.Grouping $2 }
+let unary :=
+    | ~ = pair(unop, unary) ; < Ast.Unary >
+    | primary
+
+let unop :=
+    | MINUS ; { Ast.Minus }
+    | BANG ; { Ast.Bang }
+
+let primary :=
+    | ~ = literal ; < Ast.Literal >
+    | delimited(LEFT_PAREN, grouping, RIGHT_PAREN)
+
+let literal :=
+    | ~ = NUMBER ; < Ast.Number >
+    | ~ = STRING ; < Ast.String >
+    | TRUE ; { Ast.Boolean true }
+    | FALSE ; { Ast.Boolean false }
+    | NIL ; { Ast.Nil }
+
+let grouping := ~ = unary ; < Ast.Grouping >

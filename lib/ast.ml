@@ -23,10 +23,10 @@ type lit =
   | Nil
 
 type expr =
-  | Binary of expr * binop * expr
+  | Binary of (expr * binop * expr)
   | Grouping of expr
   | Literal of lit
-  | Unary of unop * expr
+  | Unary of (unop * expr)
 
 type t = expr
 
