@@ -51,7 +51,7 @@ let to_string_binop (op : binop) : String.t =
 let to_string_lit (l : lit) : String.t =
   match l with
   | Number n -> Util.number_to_string n
-  | String s -> [%string "\"%{s}\""]
+  | String s -> s
   | Boolean b -> Bool.to_string b
   | Nil -> "nil"
 
