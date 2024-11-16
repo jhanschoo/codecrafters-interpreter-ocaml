@@ -41,6 +41,22 @@ let tokenize (lexbuf : Sedlexing.lexbuf) : Unit.t -> t =
       Parser.NUMBER (Float.of_string lexeme)
     | Plus ('0' .. '9') -> Parser.NUMBER (Float.of_string (Sedlexing.Utf8.lexeme lbuf))
     (* keywords *)
+    | "and" -> Parser.AND
+    | "class" -> Parser.CLASS
+    | "else" -> Parser.ELSE
+    | "false" -> Parser.FALSE
+    | "for" -> Parser.FOR
+    | "fun" -> Parser.FUN
+    | "if" -> Parser.IF
+    | "nil" -> Parser.NIL
+    | "or" -> Parser.OR
+    | "print" -> Parser.PRINT
+    | "return" -> Parser.RETURN
+    | "super" -> Parser.SUPER
+    | "this" -> Parser.THIS
+    | "true" -> Parser.TRUE
+    | "var" -> Parser.VAR
+    | "while" -> Parser.WHILE
     (* identifier *)
     | ('a' .. 'z' | 'A' .. 'Z' | '_'), Star ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_') ->
       Parser.IDENTIFIER (Sedlexing.Utf8.lexeme lbuf)
