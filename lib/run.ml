@@ -1,7 +1,7 @@
 open Core
 
 let gobble = MenhirLib.Convert.Simplified.traditional2revised Parser.gobble
-let expression = MenhirLib.Convert.Simplified.traditional2revised Parser.expression
+let expr = MenhirLib.Convert.Simplified.traditional2revised Parser.expr
 let prog = MenhirLib.Convert.Simplified.traditional2revised Parser.prog
 
 let tokenize filename =
@@ -20,7 +20,7 @@ let parse filename =
     let has_error, stream = Scanner.filter_unknown ~print:false Scanner.tokenize lexbuf in
     if !has_error then exit 65;
     let ast =
-      try expression stream with
+      try expr stream with
       | Parser.Error -> exit 65
     in
     print_endline (Ast.to_string ast)
@@ -34,7 +34,7 @@ let evaluate filename =
     let has_error, stream = Scanner.filter_unknown ~print:false Scanner.tokenize lexbuf in
     if !has_error then exit 65;
     let ast =
-      try expression stream with
+      try expr stream with
       | Parser.Error -> exit 65
     in
     let result = Interpreter.evaluate ast in

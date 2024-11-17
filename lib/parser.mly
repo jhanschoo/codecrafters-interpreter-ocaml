@@ -44,16 +44,22 @@
 %token <String.t> UNKNOWN
 
 %start <Unit.t> gobble
-%start <Ast.expr> expression
+%start <Ast.expr> expr
 %start <Ast.program> prog
+
+%nonassoc IF
+%right ELSE
 
 %%
 
 let triple(a, b, c) ==
     ~ = a; ~ = b; ~ = c; { (a, b, c) }
 
-let gobble :=
-    | gobble_not_eof* ; EOF ; { () }
+let initial(a) == terminated(a, EOF)
+
+let paren(a) == delimited(LEFT_PAREN, a, RIGHT_PAREN)
+
+let gobble := initial(gobble_not_eof*); { () }
 
 let gobble_not_eof :=
     | LEFT_PAREN | RIGHT_PAREN | LEFT_BRACE | RIGHT_BRACE
@@ -69,12 +75,12 @@ let gobble_not_eof :=
     | AND | CLASS | ELSE | FALSE | FUN | FOR | IF | NIL | OR
     | PRINT | RETURN | SUPER | THIS | TRUE | VAR | WHILE
 
-let expression := terminated(expr, EOF)
+let expr := initial(expression)
 
-let expr := assignment
+let expression := assignment
 
 let assignment :=
-    | ~ = separated_pair(IDENTIFIER, EQUAL, expr); < Ast.Assign >
+    | ~ = separated_pair(IDENTIFIER, EQUAL, expression); < Ast.Assign >
     | logic_or
 
 let logic_or :=
@@ -137,7 +143,7 @@ let primary :=
     | ~ = literal; < Ast.Literal >
     // | THIS; { Ast.This "this" }
     | identifier
-    | delimited(LEFT_PAREN, grouping, RIGHT_PAREN)
+    | paren(grouping)
 
 let literal :=
     | ~ = NUMBER; < Ast.Number >
@@ -148,17 +154,21 @@ let literal :=
 
 let identifier := ~ = IDENTIFIER; < Ast.Variable >
 
-let grouping := ~ = expr; < Ast.Grouping >
+let grouping := ~ = expression; < Ast.Grouping >
 
-let prog := ~ = declaration*; EOF; <>
+let prog := ~ = initial(declaration*); <>
 
 let declaration :=
     | vardecl
     | statement
 
-let vardecl := ~ = delimited(VAR, pair(IDENTIFIER, option(preceded(EQUAL, expr))), SEMICOLON); < Ast.Var >
+let vardecl := ~ = delimited(VAR, pair(IDENTIFIER, option(preceded(EQUAL, expression))), SEMICOLON); < Ast.Var >
 
 let statement :=
-    | ~ = delimited(PRINT, expr, SEMICOLON); < Ast.Print >
-    | ~ = terminated(expr, SEMICOLON); < Ast.Expression >
+    | ~ = delimited(PRINT, expression, SEMICOLON); < Ast.Print >
+    | ~ = terminated(expression, SEMICOLON); < Ast.Expression >
     | ~ = delimited(LEFT_BRACE, declaration*, RIGHT_BRACE); < Ast.Block >
+    | IF; a = paren(expression); b = statement; { Ast.If (a, b, None) } %prec IF
+    | IF; a = paren(expression); b = statement; c = preceded(ELSE, statement); { Ast.If (a, b, Some c) }
+    | ~ = preceded(WHILE, pair(paren(expression), statement)); < Ast.While >
+    | ~ = delimited(RETURN, option(expression), SEMICOLON); < Ast.Return >
