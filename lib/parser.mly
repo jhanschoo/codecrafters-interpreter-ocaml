@@ -159,16 +159,41 @@ let grouping := ~ = expression; < Ast.Grouping >
 let prog := ~ = initial(declaration*); <>
 
 let declaration :=
-    | vardecl
+    | var_decl
     | statement
 
-let vardecl := ~ = delimited(VAR, pair(IDENTIFIER, option(preceded(EQUAL, expression))), SEMICOLON); < Ast.Var >
+let var_decl := ~ = delimited(VAR, pair(IDENTIFIER, option(preceded(EQUAL, expression))), SEMICOLON); < Ast.Var >
 
 let statement :=
     | ~ = delimited(PRINT, expression, SEMICOLON); < Ast.Print >
-    | ~ = terminated(expression, SEMICOLON); < Ast.Expression >
+    | expr_stmt
     | ~ = delimited(LEFT_BRACE, declaration*, RIGHT_BRACE); < Ast.Block >
     | IF; a = paren(expression); b = statement; { Ast.If (a, b, None) } %prec IF
     | IF; a = paren(expression); b = statement; c = preceded(ELSE, statement); { Ast.If (a, b, Some c) }
     | ~ = preceded(WHILE, pair(paren(expression), statement)); < Ast.While >
     | ~ = delimited(RETURN, option(expression), SEMICOLON); < Ast.Return >
+    | for_stmt
+
+let expr_stmt := ~ = terminated(expression, SEMICOLON); < Ast.Expression >
+
+// forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+//                           expression? ";"
+//                           expression? ")" statement ;
+let for_stmt :=
+    | FOR; LEFT_PAREN; a = for_init_cond_incr_body; { a }
+
+let for_init_cond_incr_body :=
+    | SEMICOLON; a = for_cond_incr_body; { a }
+    | a = for_init; b = for_cond_incr_body; { Ast.Block [a; b] }
+
+let for_init :=
+    | var_decl
+    | expr_stmt
+
+let for_cond_incr_body :=
+    | SEMICOLON; a = for_incr_body; { Ast.While (Ast.Literal (Ast.Boolean true), a) }
+    | a = expression; SEMICOLON; b = for_incr_body; { Ast.While (a, b) }
+
+let for_incr_body :=
+    | RIGHT_PAREN; ~ = statement; <>
+    | a = expression; RIGHT_PAREN; b = statement; { Ast.Block [b; Ast.Expression a] }
