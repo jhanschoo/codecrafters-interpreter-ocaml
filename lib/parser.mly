@@ -84,14 +84,14 @@ let assignment :=
     | logic_or
 
 let logic_or :=
-    | ~ = triple(logic_and, orop, logic_or); SEMICOLON; < Ast.Logical >
+    | ~ = triple(logic_and, orop, logic_or); < Ast.Logical >
     | logic_and
 
 let orop :=
     | OR; { Ast.Or }
 
 let logic_and :=
-    | ~ = triple(equality, andop, logic_and); SEMICOLON; < Ast.Logical >
+    | ~ = triple(equality, andop, logic_and); < Ast.Logical >
     | equality
 
 let andop :=
