@@ -95,7 +95,7 @@ let rec evaluate_expr (env : environment) (expr : Ast.expr) : Value.t =
      | Value.NativeCallable (arity, f) ->
        guardarity arity;
        f args
-     | Value.Callable { arity; params; env; body } ->
+     | Value.Callable { arity; identifier = _identifier; params; env; body } ->
        guardarity arity;
        let new_env = Environment.create env in
        List.iter2_exn params args ~f:(fun param arg ->
@@ -138,11 +138,11 @@ and evaluate_stmt (env : environment) (stmt : Ast.stmt) : Value.t option =
       ret := evaluate_stmt env body
     done;
     !ret
-  | Ast.Function (name, params, body) ->
+  | Ast.Function (identifier, params, body) ->
     Environment.define
       env
-      name
-      (Value.Callable { arity = List.length params; params; env; body });
+      identifier
+      (Value.Callable { arity = List.length params; identifier; params; env; body });
     None
   | _ ->
     Printf.eprintf "Not implemented yet.\n";

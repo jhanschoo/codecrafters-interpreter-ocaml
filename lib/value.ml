@@ -8,6 +8,7 @@ type t =
 
 and callable =
   { arity : int
+  ; identifier : string
   ; params : String.t list
   ; env : t Environment.t
   ; body : Ast.stmt
@@ -22,7 +23,7 @@ let to_string (v : t) : string =
   | Boolean false -> "false"
   | Nil -> "nil"
   | NativeCallable _ -> "<native fn>"
-  | Callable { arity; _ } -> Printf.sprintf "<fn %d>" arity
+  | Callable { identifier; _ } -> Printf.sprintf "<fn %s>" identifier
 ;;
 
 let is_truthy (v : t) : bool =
