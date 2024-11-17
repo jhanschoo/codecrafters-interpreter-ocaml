@@ -29,7 +29,7 @@ type lit =
 type expr =
   | Assign of (String.t * expr)
   | Binary of (expr * binop * expr)
-  | Call of (expr * String.t * expr list)
+  | Call of (expr * expr list)
   | Get of (expr * String.t)
   | Grouping of expr
   | Literal of lit
@@ -87,7 +87,7 @@ let rec to_string (e : expr) : String.t =
   match e with
   | Assign (v, e) -> [%string "(assign %{v} %{to_string e})"]
   | Binary (l, op, r) -> [%string "(%{to_string_binop op} %{to_string l} %{to_string r})"]
-  | Call (c, p, args) -> [%string "(call %{to_string c} %{p} %{List.to_string ~f:to_string args})"]
+  | Call (c, args) -> [%string "(call %{to_string c} %{List.to_string ~f:to_string args})"]
   | Get (o, k) -> [%string "(get %{to_string o} %{k})"]
   | Grouping e -> [%string "(group %{to_string e})"]
   | Literal l -> to_string_lit l

@@ -3,6 +3,7 @@ type t =
   | String of string
   | Boolean of bool
   | Nil
+  | NativeCallable of (int * (t list -> t))
 
 let to_string (v : t) : string =
   match v with
@@ -12,6 +13,7 @@ let to_string (v : t) : string =
   | Boolean true -> "true"
   | Boolean false -> "false"
   | Nil -> "nil"
+  | NativeCallable _ -> "<native fn>"
 ;;
 
 let is_truthy (v : t) : bool =

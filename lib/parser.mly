@@ -133,11 +133,17 @@ let factor_binop :=
 
 let unary :=
     | ~ = pair(unop, unary); < Ast.Unary >
-    | primary
+    | call
 
 let unop :=
     | MINUS; { Ast.Minus }
     | BANG; { Ast.Bang }
+
+let call :=
+    | ~ = pair(call, paren(arguments)); < Ast.Call >
+    | primary
+
+let arguments := ~ = separated_list(COMMA, expr); <>
 
 let primary :=
     | ~ = literal; < Ast.Literal >
@@ -176,9 +182,6 @@ let statement :=
 
 let expr_stmt := ~ = terminated(expression, SEMICOLON); < Ast.Expression >
 
-// forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
-//                           expression? ";"
-//                           expression? ")" statement ;
 let for_stmt :=
     | FOR; LEFT_PAREN; a = for_init_cond_incr_body; { a }
 

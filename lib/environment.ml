@@ -2,11 +2,20 @@ open Core
 
 type t = (string, Value.t) Hashtbl.t list
 
+let global =
+  Hashtbl.of_alist_exn
+    (module String)
+    [ ( "clock"
+      , Value.NativeCallable
+          ( 0
+          , fun _ ->
+              Time_float.(now () |> to_span_since_epoch |> Span.to_sec) |> Value.Number )
+      )
+    ]
+;;
+
 let create (parent : t option) : t =
-  let tbl = Hashtbl.create (module String) in
-  match parent with
-  | Some parent -> tbl :: parent
-  | None -> tbl :: []
+  Hashtbl.create (module String) :: Option.value ~default:[ global ] parent
 ;;
 
 let rec get (env : t) (name : string) : Value.t option =

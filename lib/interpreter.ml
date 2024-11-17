@@ -72,6 +72,22 @@ let rec evaluate_expr (env : Environment.t) (expr : Ast.expr) : Value.t =
     let v = evaluate_expr env e in
     Environment.set env var v;
     v
+  | Ast.Call (callee, args) ->
+    let f = evaluate_expr env callee in
+    let args = List.map args ~f:(evaluate_expr env) in
+    let guardarity arity =
+      if List.length args <> arity
+      then (
+        Printf.eprintf "Expected %d arguments but got %d.\n" arity (List.length args);
+        exit 70)
+    in
+    (match f with
+     | Value.NativeCallable (arity, f) ->
+       guardarity arity;
+       f args
+     | _ ->
+       Printf.eprintf "Can only call functions and classes.\n";
+       exit 70)
   | _ ->
     Printf.eprintf "Not implemented yet.\n";
     exit 70
