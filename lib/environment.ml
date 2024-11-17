@@ -1,24 +1,14 @@
 open Core
 
-type t = (string, Value.t) Hashtbl.t list
+type 'a t = (string, 'a) Hashtbl.t list
 
-let global =
-  Hashtbl.of_alist_exn
-    (module String)
-    [ ( "clock"
-      , Value.NativeCallable
-          ( 0
-          , fun _ ->
-              Time_float.(now () |> to_span_since_epoch |> Span.to_sec) |> Value.Number )
-      )
-    ]
+let initialize (clock : 'a) =
+  Hashtbl.of_alist_exn (module String) [ "clock", clock ] :: []
 ;;
 
-let create (parent : t option) : t =
-  Hashtbl.create (module String) :: Option.value ~default:[ global ] parent
-;;
+let create (parent : 'a t) : 'a t = Hashtbl.create (module String) :: parent
 
-let rec get (env : t) (name : string) : Value.t option =
+let rec get (env : 'a t) (name : string) : 'a option =
   match env with
   | [] -> None
   | tbl :: rest ->
@@ -27,16 +17,16 @@ let rec get (env : t) (name : string) : Value.t option =
      | None -> get rest name)
 ;;
 
-let define (env : t) (name : string) (value : Value.t) : unit =
+let define (env : 'a t) (key : string) (data : 'a) : unit =
   match env with
   | [] -> failwith "Environment.define: No table to define in."
-  | tbl :: _ -> Hashtbl.set tbl ~key:name ~data:value
+  | tbl :: _ -> Hashtbl.set tbl ~key ~data
 ;;
 
-let set (env : t) (name : string) (value : Value.t) : unit =
+let set (env : 'a t) (key : string) (data : 'a) : unit =
   let f tbl =
-    let f _ = Hashtbl.set tbl ~key:name ~data:value in
-    Hashtbl.find tbl name |> Option.map ~f
+    let f _ = Hashtbl.set tbl ~key ~data in
+    Hashtbl.find tbl key |> Option.map ~f
   in
   if List.find_map env ~f |> Option.is_none
   then failwith "Environment.set: No table to set in."

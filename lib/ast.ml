@@ -44,7 +44,7 @@ type stmt =
   | Block of stmt list
   | Class of (String.t * expr option * stmt list)
   | Expression of expr
-  | Function of (String.t * String.t list * stmt list)
+  | Function of (String.t * String.t list * stmt)
   | If of (expr * stmt * stmt option)
   | Print of expr
   | Return of expr option

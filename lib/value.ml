@@ -4,6 +4,14 @@ type t =
   | Boolean of bool
   | Nil
   | NativeCallable of (int * (t list -> t))
+  | Callable of callable
+
+and callable =
+  { arity : int
+  ; params : String.t list
+  ; env : t Environment.t
+  ; body : Ast.stmt
+  }
 
 let to_string (v : t) : string =
   match v with
@@ -14,6 +22,7 @@ let to_string (v : t) : string =
   | Boolean false -> "false"
   | Nil -> "nil"
   | NativeCallable _ -> "<native fn>"
+  | Callable { arity; _ } -> Printf.sprintf "<fn %d>" arity
 ;;
 
 let is_truthy (v : t) : bool =

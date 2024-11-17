@@ -54,5 +54,5 @@ let run filename =
     in
     Interpreter.execute program
   in
-  In_channel.with_file filename ~f
+  In_channel.with_file filename ~f |> (ignore : Value.t -> _)
 ;;

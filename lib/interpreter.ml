@@ -1,5 +1,15 @@
 open Core
 
+type environment = Value.t Environment.t
+
+let global =
+  Environment.initialize
+    (Value.NativeCallable
+       ( 0
+       , fun _ ->
+           Time_float.(now () |> to_span_since_epoch |> Span.to_sec) |> Value.Number ))
+;;
+
 let evaluate_lit (lit : Ast.lit) : Value.t =
   match lit with
   | Ast.Number n -> Value.Number n
@@ -8,7 +18,7 @@ let evaluate_lit (lit : Ast.lit) : Value.t =
   | Ast.Nil -> Value.Nil
 ;;
 
-let rec evaluate_expr (env : Environment.t) (expr : Ast.expr) : Value.t =
+let rec evaluate_expr (env : environment) (expr : Ast.expr) : Value.t =
   match expr with
   | Ast.Logical (e1, op, e2) ->
     let v1 = evaluate_expr env e1 in
@@ -85,42 +95,63 @@ let rec evaluate_expr (env : Environment.t) (expr : Ast.expr) : Value.t =
      | Value.NativeCallable (arity, f) ->
        guardarity arity;
        f args
+     | Value.Callable { arity; params; env; body } ->
+       guardarity arity;
+       let new_env = Environment.create env in
+       List.iter2_exn params args ~f:(fun param arg ->
+         Environment.define new_env param arg);
+       evaluate_stmt new_env body |> Option.value ~default:Value.Nil
      | _ ->
        Printf.eprintf "Can only call functions and classes.\n";
        exit 70)
   | _ ->
     Printf.eprintf "Not implemented yet.\n";
     exit 70
+
+and evaluate expr = evaluate_expr global expr
+
+and evaluate_stmt (env : environment) (stmt : Ast.stmt) : Value.t option =
+  match stmt with
+  | Ast.Var (name, Some expr) ->
+    Environment.define env name (evaluate_expr env expr);
+    None
+  | Ast.Var (name, None) ->
+    Environment.define env name Value.Nil;
+    None
+  | Ast.Print e ->
+    Printf.printf "%s\n" (Value.to_string (evaluate_expr env e));
+    None
+  | Ast.Expression e ->
+    ignore (evaluate_expr env e : Value.t);
+    None
+  | Ast.Block stmts -> evaluate_block env stmts
+  | Ast.If (cond, then_branch, else_branch) ->
+    if Value.is_truthy (evaluate_expr env cond)
+    then evaluate_stmt env then_branch
+    else (
+      match else_branch with
+      | Some stmt -> evaluate_stmt env stmt
+      | None -> None)
+  | Ast.While (cond, body) ->
+    let ret = ref None in
+    while Option.is_none !ret && Value.is_truthy (evaluate_expr env cond) do
+      ret := evaluate_stmt env body
+    done;
+    !ret
+  | Ast.Function (name, params, body) ->
+    Environment.define
+      env
+      name
+      (Value.Callable { arity = List.length params; params; env; body });
+    None
+  | _ ->
+    Printf.eprintf "Not implemented yet.\n";
+    exit 70
+
+and evaluate_block (env : environment) (prog : Ast.program) : Value.t option =
+  let new_env = Environment.create env in
+  List.find_map ~f:(evaluate_stmt new_env) prog
+
+and execute (prog : Ast.program) =
+  evaluate_block global prog |> Option.value ~default:Value.Nil
 ;;
-
-let evaluate = evaluate_expr (Environment.create None)
-
-let rec evaluate_prog (env : Environment.t) (prog : Ast.program) : Unit.t =
-  let f (stmt : Ast.stmt) : Unit.t =
-    match stmt with
-    | Ast.Var (name, Some expr) -> Environment.define env name (evaluate_expr env expr)
-    | Ast.Var (name, None) -> Environment.define env name Value.Nil
-    | Ast.Print e -> Printf.printf "%s\n" (Value.to_string (evaluate_expr env e))
-    | Ast.Expression e -> ignore (evaluate_expr env e : Value.t)
-    | Ast.Block stmts ->
-      let new_env = Environment.create (Some env) in
-      evaluate_prog new_env stmts
-    | Ast.If (cond, then_branch, else_branch) ->
-      if Value.is_truthy (evaluate_expr env cond)
-      then evaluate_prog env [ then_branch ]
-      else (
-        match else_branch with
-        | Some stmt -> evaluate_prog env [ stmt ]
-        | None -> ())
-    | Ast.While (cond, body) ->
-      while Value.is_truthy (evaluate_expr env cond) do
-        evaluate_prog env [ body ]
-      done
-    | _ ->
-      Printf.eprintf "Not implemented yet.\n";
-      exit 70
-  in
-  List.iter prog ~f
-;;
-
-let execute = evaluate_prog (Environment.create None)

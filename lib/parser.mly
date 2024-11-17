@@ -173,12 +173,15 @@ let var_decl := ~ = delimited(VAR, pair(IDENTIFIER, option(preceded(EQUAL, expre
 let statement :=
     | ~ = delimited(PRINT, expression, SEMICOLON); < Ast.Print >
     | expr_stmt
-    | ~ = delimited(LEFT_BRACE, declaration*, RIGHT_BRACE); < Ast.Block >
+    | block
     | IF; a = paren(expression); b = statement; { Ast.If (a, b, None) } %prec IF
     | IF; a = paren(expression); b = statement; c = preceded(ELSE, statement); { Ast.If (a, b, Some c) }
     | ~ = preceded(WHILE, pair(paren(expression), statement)); < Ast.While >
     | ~ = delimited(RETURN, option(expression), SEMICOLON); < Ast.Return >
+    | FUN; a = IDENTIFIER; b = paren(separated_list(COMMA, IDENTIFIER)); c = block; { Ast.Function (a, b, c) }
     | for_stmt
+
+let block := ~ = delimited(LEFT_BRACE, declaration*, RIGHT_BRACE); < Ast.Block >
 
 let expr_stmt := ~ = terminated(expression, SEMICOLON); < Ast.Expression >
 
