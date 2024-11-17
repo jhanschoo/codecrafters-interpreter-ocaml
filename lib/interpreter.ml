@@ -144,6 +144,10 @@ and evaluate_stmt (env : environment) (stmt : Ast.stmt) : Value.t option =
       identifier
       (Value.Callable { arity = List.length params; identifier; params; env; body });
     None
+  | Ast.Return expr_opt ->
+    (match expr_opt with
+     | Some expr -> Some (evaluate_expr env expr)
+     | None -> Some Value.Nil)
   | _ ->
     Printf.eprintf "Not implemented yet.\n";
     exit 70
