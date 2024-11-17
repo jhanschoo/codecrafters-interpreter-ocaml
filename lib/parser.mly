@@ -143,7 +143,7 @@ let call :=
     | ~ = pair(call, paren(arguments)); < Ast.Call >
     | primary
 
-let arguments := ~ = separated_list(COMMA, expr); <>
+let arguments := ~ = separated_list(COMMA, expression); <>
 
 let primary :=
     | ~ = literal; < Ast.Literal >

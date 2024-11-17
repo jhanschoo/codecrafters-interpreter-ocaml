@@ -97,3 +97,16 @@ let rec to_string (e : expr) : String.t =
   | This k -> [%string "(this %{k})"]
   | Unary (op, e) -> [%string "(%{to_string_unop op} %{to_string e})"]
   | Variable v -> v
+
+let rec to_string_stmt (s : stmt) : String.t =
+  match s with
+  | Block stmts -> [%string "(block %{List.to_string ~f:to_string_stmt stmts})"]
+  | Class (n, s, stmts) -> [%string "(class %{n} %{List.to_string ~f:to_string (Option.to_list s)} %{List.to_string ~f:to_string_stmt stmts})"]
+  | Expression e -> to_string e
+  | Function (n, p, b) -> [%string "(fun %{n} %{List.to_string ~f:(fun x -> x) p} %{to_string_stmt b})"]
+  | If (c, t, f) -> [%string "(if %{to_string c} %{to_string_stmt t} %{List.to_string ~f:to_string_stmt (Option.to_list f)})"]
+  | Print e -> [%string "(print %{to_string e})"]
+  | Return e -> [%string "(return %{List.to_string ~f:to_string (Option.to_list e)})"]
+  | Var (n, e) -> [%string "(var %{n} %{List.to_string ~f:to_string (Option.to_list e)})"]
+  | While (c, b) -> [%string "(while %{to_string c} %{to_string_stmt b})"]
+  
